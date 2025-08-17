@@ -34,7 +34,12 @@ export const DatabaseProvider: React.FC<DatabaseProviderProps> = ({ children }) 
         setError(null);
 
         const SQL = await initSqlJs({
-          locateFile: () => `/sql-wasm.wasm`
+          locateFile: (file) => {
+            // Determine base path - use relative path in development, absolute in production
+            const isProduction = window.location.hostname !== 'localhost';
+            const basePath = isProduction ? '/pary-planner/' : '/';
+            return `${basePath}${file}`;
+          }
         });
 
         if (!mounted) return;
