@@ -1,4 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useCurrentParty } from '../contexts/PartyContext';
+import { useBeverageCalculations } from '../hooks/useBeverageCalculations';
+import PartySelector from '../components/PartySelector';
 
 interface BeverageEstimate {
   water: number;
@@ -9,10 +12,24 @@ interface BeverageEstimate {
 }
 
 const BeverageCalculator = () => {
+  const { currentParty, currentPartyId, setCurrentPartyId } = useCurrentParty();
+  const { calculations, saveCalculation, deleteCalculation, loading } = useBeverageCalculations(currentPartyId);
   const [guestCount, setGuestCount] = useState<number>(0);
   const [partyDuration, setPartyDuration] = useState<number>(3);
   const [partyType, setPartyType] = useState<'casual' | 'formal' | 'mixed'>('mixed');
   const [includeAlcohol, setIncludeAlcohol] = useState<boolean>(true);
+  const [showHistory, setShowHistory] = useState(false);
+
+  // Load party data when party changes
+  useEffect(() => {
+    if (currentParty) {
+      if (currentParty.guest_count > 0) {
+        setGuestCount(currentParty.guest_count);
+      }
+      setPartyDuration(currentParty.duration);
+      setPartyType(currentParty.party_type);
+    }
+  }, [currentParty]);
 
   const calculateBeverages = (): BeverageEstimate => {
     if (guestCount <= 0) return { water: 0, soda: 0, beer: 0, wine: 0, cocktails: 0 };
@@ -46,8 +63,36 @@ const BeverageCalculator = () => {
 
   const estimate = calculateBeverages();
 
+  const handleSaveCalculation = async () => {
+    if (!currentPartyId || guestCount === 0) return;
+    
+    try {
+      await saveCalculation(
+        guestCount,
+        partyDuration,
+        partyType,
+        includeAlcohol,
+        estimate.water,
+        estimate.soda,
+        estimate.beer,
+        estimate.wine,
+        estimate.cocktails
+      );
+    } catch (error) {
+      console.error('Failed to save calculation:', error);
+    }
+  };
+
+  const handleDeleteCalculation = async (id: number) => {
+    try {
+      await deleteCalculation(id);
+    } catch (error) {
+      console.error('Failed to delete calculation:', error);
+    }
+  };
+
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className="max-w-6xl mx-auto px-4 py-8">
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-gray-800 mb-4">
           🥤 Beverage Calculator
@@ -58,11 +103,26 @@ const BeverageCalculator = () => {
         </p>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-8">
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-6">
-            Party Details
-          </h2>
+      <PartySelector
+        selectedPartyId={currentPartyId}
+        onPartySelect={setCurrentPartyId}
+        className="mb-8"
+      />
+
+      {!currentPartyId ? (
+        <div className="text-center py-12">
+          <p className="text-gray-500 text-lg">
+            Please select or create a party to calculate beverage needs.
+          </p>
+        </div>
+      ) : (
+
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Calculator Inputs */}
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <h2 className="text-xl font-semibold text-gray-800 mb-6">
+              Party Details
+            </h2>
           
           <div className="space-y-6">
             <div>
@@ -123,9 +183,19 @@ const BeverageCalculator = () => {
                 Include alcoholic beverages
               </label>
             </div>
+
+            {guestCount > 0 && currentPartyId && (
+              <button
+                onClick={handleSaveCalculation}
+                className="w-full bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+              >
+                💾 Save Calculation
+              </button>
+            )}
           </div>
         </div>
 
+        {/* Results */}
         <div className="bg-white rounded-lg shadow-lg p-6">
           <h2 className="text-xl font-semibold text-gray-800 mb-6">
             Beverage Estimate
@@ -168,7 +238,87 @@ const BeverageCalculator = () => {
             </p>
           )}
         </div>
+
+        {/* Calculation History */}
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-semibold text-gray-800">
+              📊 History
+            </h2>
+            <button
+              onClick={() => setShowHistory(!showHistory)}
+              className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+            >
+              {showHistory ? 'Hide' : 'Show'}
+            </button>
+          </div>
+
+          {loading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto mb-2"></div>
+              <p className="text-gray-500 text-sm">Loading calculations...</p>
+            </div>
+          ) : calculations.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <p className="mb-2">No saved calculations yet</p>
+              <p className="text-sm">Save a calculation to see it here!</p>
+            </div>
+          ) : showHistory ? (
+            <div className="space-y-3 max-h-64 overflow-y-auto">
+              {calculations.map((calc) => (
+                <div key={calc.id} className="p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="font-medium text-gray-800">
+                      {calc.guest_count} guests, {calc.duration}h
+                    </p>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => {
+                          setGuestCount(calc.guest_count);
+                          setPartyDuration(calc.duration);
+                          setPartyType(calc.party_type as any);
+                          setIncludeAlcohol(calc.include_alcohol);
+                        }}
+                        className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                        title="Load this calculation"
+                      >
+                        Load
+                      </button>
+                      <button
+                        onClick={() => handleDeleteCalculation(calc.id)}
+                        className="text-red-600 hover:text-red-800 text-sm"
+                        title="Delete calculation"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
+                    <span>💧 {calc.water_bottles} water</span>
+                    <span>🥤 {calc.soft_drinks} sodas</span>
+                    {calc.include_alcohol && (
+                      <>
+                        <span>🍺 {calc.beer_bottles} beers</span>
+                        <span>🍷 {calc.wine_bottles} wines</span>
+                      </>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {new Date(calc.calculated_at).toLocaleDateString()}
+                  </p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-4">
+              <p className="text-gray-600 text-sm">
+                {calculations.length} saved calculation{calculations.length !== 1 ? 's' : ''}
+              </p>
+            </div>
+          )}
+        </div>
       </div>
+      )}
 
       <div className="mt-8 bg-gray-50 rounded-lg p-6">
         <h3 className="text-lg font-semibold text-gray-800 mb-4">
