@@ -20,13 +20,14 @@ A modern, browser-based party planning application built with React, TypeScript,
 - **TypeScript** - Type-safe development
 - **Tailwind CSS** - Utility-first styling
 - **Vite** - Fast build tool
+- **Bun** - Fast JavaScript runtime and package manager
+- **SQLite WASM** - Client-side database storage
 - **GitHub Pages** - Automatic deployment
 
 ## 🏗️ Getting Started
 
 ### Prerequisites
-- Node.js 18 or higher
-- npm or yarn
+- Bun 1.0 or higher (or Node.js 18+ with npm/yarn as fallback)
 
 ### Installation
 
@@ -38,12 +39,12 @@ cd pary-planner
 
 2. Install dependencies:
 ```bash
-npm install
+bun install
 ```
 
 3. Start the development server:
 ```bash
-npm run dev
+bun dev
 ```
 
 4. Open your browser and visit `http://localhost:5173`
@@ -52,19 +53,19 @@ npm run dev
 
 ```bash
 # Start development server
-npm run dev
+bun dev
 
 # Build for production
-npm run build
+bun run build
 
 # Preview production build
-npm run preview
+bun run preview
 
 # Run type checking
-npm run typecheck
+bun run typecheck
 
 # Run linting
-npm run lint
+bun run lint
 ```
 
 ## 🚀 Deployment

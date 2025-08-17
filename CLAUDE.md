@@ -17,22 +17,22 @@ A browser-based party planning application built with React, TypeScript, and Tai
 
 ```bash
 # Install dependencies
-npm install
+bun install
 
 # Start development server
-npm run dev
+bun dev
 
 # Build for production
-npm run build
+bun run build
 
 # Run linting
-npm run lint
+bun run lint
 
 # Run type checking
-npm run typecheck
+bun run typecheck
 
 # Preview production build locally
-npm run preview
+bun run preview
 ```
 
 ## Deployment
