@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 import initSqlJs, { Database } from 'sql.js';
 import { DATABASE_SCHEMA } from '../database/schema';
 import { DatabaseError } from '../types/database';
+import { runMigrations } from '../database/migrations';
 
 interface DatabaseContextType {
   db: Database | null;
@@ -71,6 +72,48 @@ export const DatabaseProvider: React.FC<DatabaseProviderProps> = ({ children }) 
 
         // Initialize schema
         database.exec(DATABASE_SCHEMA);
+
+        // Create helper functions for migrations
+        const executeQuery = async (sql: string, params: any[] = []): Promise<any[]> => {
+          const stmt = database.prepare(sql);
+          const results: any[] = [];
+          stmt.bind(params);
+          while (stmt.step()) {
+            const row = stmt.getAsObject();
+            results.push(row);
+          }
+          stmt.free();
+          return results;
+        };
+
+        const executeUpdate = async (sql: string, params: any[] = []): Promise<{ changes: number; lastInsertRowid: number }> => {
+          const stmt = database.prepare(sql);
+          stmt.bind(params);
+          stmt.step();
+          const changes = database.getRowsModified();
+          const lastInsertRowid = database.exec('SELECT last_insert_rowid()')[0]?.values[0]?.[0] as number || 0;
+          stmt.free();
+          return { changes, lastInsertRowid };
+        };
+
+        const transaction = async (queries: { sql: string; params?: any[] }[]): Promise<void> => {
+          database.exec('BEGIN TRANSACTION');
+          try {
+            for (const query of queries) {
+              const stmt = database.prepare(query.sql);
+              stmt.bind(query.params || []);
+              stmt.step();
+              stmt.free();
+            }
+            database.exec('COMMIT');
+          } catch (error) {
+            database.exec('ROLLBACK');
+            throw error;
+          }
+        };
+
+        // Run migrations
+        await runMigrations(executeQuery, executeUpdate, transaction);
 
         setDb(database);
         setIsReady(true);
