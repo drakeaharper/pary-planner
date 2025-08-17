@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useDatabase } from '../contexts/DatabaseContext';
 import { Party } from '../types/database';
 import { DEFAULT_TIMELINE_TASKS } from '../database/schema';
@@ -9,7 +9,7 @@ export const useParties = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const loadParties = async () => {
+  const loadParties = useCallback(async () => {
     try {
       setLoading(true);
       const results = await executeQuery(
@@ -22,15 +22,15 @@ export const useParties = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [executeQuery]);
 
   useEffect(() => {
     if (isReady) {
       loadParties();
     }
-  }, [isReady]);
+  }, [isReady, loadParties]);
 
-  const createParty = async (partyData: Omit<Party, 'id' | 'created_at' | 'updated_at'>): Promise<number> => {
+  const createParty = useCallback(async (partyData: Omit<Party, 'id' | 'created_at' | 'updated_at'>): Promise<number> => {
     try {
       const result = await executeUpdate(
         `INSERT INTO parties (name, date, guest_count, party_type, duration, theme, notes)
@@ -63,9 +63,9 @@ export const useParties = () => {
       setError(err.message);
       throw err;
     }
-  };
+  }, [executeUpdate, transaction, loadParties]);
 
-  const updateParty = async (id: number, updates: Partial<Omit<Party, 'id' | 'created_at'>>) => {
+  const updateParty = useCallback(async (id: number, updates: Partial<Omit<Party, 'id' | 'created_at'>>) => {
     try {
       const setClause = Object.keys(updates).map(key => `${key} = ?`).join(', ');
       const values = Object.values(updates);
@@ -80,9 +80,9 @@ export const useParties = () => {
       setError(err.message);
       throw err;
     }
-  };
+  }, [executeUpdate, loadParties]);
 
-  const deleteParty = async (id: number) => {
+  const deleteParty = useCallback(async (id: number) => {
     try {
       await executeUpdate('DELETE FROM parties WHERE id = ?', [id]);
       await loadParties();
@@ -90,9 +90,9 @@ export const useParties = () => {
       setError(err.message);
       throw err;
     }
-  };
+  }, [executeUpdate, loadParties]);
 
-  const getParty = async (id: number): Promise<Party | null> => {
+  const getParty = useCallback(async (id: number): Promise<Party | null> => {
     try {
       const results = await executeQuery('SELECT * FROM parties WHERE id = ?', [id]);
       return results.length > 0 ? results[0] as Party : null;
@@ -100,7 +100,7 @@ export const useParties = () => {
       setError(err.message);
       return null;
     }
-  };
+  }, [executeQuery]);
 
   return {
     parties,
