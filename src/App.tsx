@@ -1,27 +1,38 @@
-import PizzaEstimator from './PizzaEstimator';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { DatabaseProvider } from './contexts/DatabaseContext';
+import { PartyProvider } from './contexts/PartyContext';
+import Navigation from './Navigation';
+import Home from './pages/Home';
+import PizzaCalculator from './pages/PizzaCalculator';
+import BeverageCalculator from './pages/BeverageCalculator';
+import GuestListManager from './pages/GuestListManager';
+import TimelinePlanner from './pages/TimelinePlanner';
 
 function App() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="container mx-auto px-4 py-8">
-        <header className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-800 mb-4">
-            🎉 Party Planner
-          </h1>
-          <p className="text-gray-600 text-lg">
-            Plan the perfect party with our helpful tools
-          </p>
-        </header>
-        
-        <main>
-          <PizzaEstimator />
-        </main>
-        
-        <footer className="text-center mt-12 text-gray-500 text-sm">
-          <p>© 2025 Party Planner - Making parties better, one slice at a time!</p>
-        </footer>
-      </div>
-    </div>
+    <DatabaseProvider>
+      <PartyProvider>
+        <Router>
+          <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+            <Navigation />
+            
+            <main className="pb-12">
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/pizza" element={<PizzaCalculator />} />
+                <Route path="/beverages" element={<BeverageCalculator />} />
+                <Route path="/guests" element={<GuestListManager />} />
+                <Route path="/timeline" element={<TimelinePlanner />} />
+              </Routes>
+            </main>
+            
+            <footer className="text-center py-8 text-gray-500 text-sm bg-white/50">
+              <p>© 2025 Party Planner - Making parties better, one slice at a time!</p>
+            </footer>
+          </div>
+        </Router>
+      </PartyProvider>
+    </DatabaseProvider>
   );
 }
 
