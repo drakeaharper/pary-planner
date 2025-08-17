@@ -30,6 +30,13 @@ const Home = () => {
       path: '/timeline',
       color: 'bg-purple-50 hover:bg-purple-100',
     },
+    {
+      title: 'Data Management',
+      description: 'Export and import your party data for backup and sharing',
+      icon: '📁',
+      path: '/data',
+      color: 'bg-gray-50 hover:bg-gray-100',
+    },
   ];
 
   return (

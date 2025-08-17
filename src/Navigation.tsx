@@ -9,6 +9,7 @@ const Navigation = () => {
     { path: '/beverages', label: 'Beverage Calculator', icon: '🥤' },
     { path: '/guests', label: 'Guest List', icon: '👥' },
     { path: '/timeline', label: 'Timeline', icon: '📅' },
+    { path: '/data', label: 'Data Management', icon: '📁' },
   ];
 
   return (
