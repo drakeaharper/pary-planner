@@ -35,10 +35,19 @@ export const DatabaseProvider: React.FC<DatabaseProviderProps> = ({ children }) 
 
         const SQL = await initSqlJs({
           locateFile: (file) => {
-            // Determine base path - use relative path in development, absolute in production
-            const isProduction = window.location.hostname !== 'localhost';
-            const basePath = isProduction ? '/pary-planner/' : '/';
-            return `${basePath}${file}`;
+            // Use the current page's base URL to determine the correct path
+            const baseUrl = new URL(window.location.href);
+            const isGitHubPages = baseUrl.hostname.includes('github.io');
+            
+            if (isGitHubPages) {
+              // For GitHub Pages, use the full pathname as base
+              const pathParts = baseUrl.pathname.split('/').filter(part => part);
+              const repoName = pathParts[0] || 'pary-planner';
+              return `/${repoName}/${file}`;
+            } else {
+              // For local development, use relative path
+              return `/${file}`;
+            }
           }
         });
 
