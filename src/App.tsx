@@ -7,6 +7,7 @@ import PizzaCalculator from './pages/PizzaCalculator';
 import BeverageCalculator from './pages/BeverageCalculator';
 import GuestListManager from './pages/GuestListManager';
 import TimelinePlanner from './pages/TimelinePlanner';
+import ItineraryPlanner from './pages/ItineraryPlanner';
 import DataManagement from './pages/DataManagement';
 
 function App() {
@@ -24,6 +25,7 @@ function App() {
                 <Route path="/beverages" element={<BeverageCalculator />} />
                 <Route path="/guests" element={<GuestListManager />} />
                 <Route path="/timeline" element={<TimelinePlanner />} />
+                <Route path="/itinerary" element={<ItineraryPlanner />} />
                 <Route path="/data" element={<DataManagement />} />
               </Routes>
             </main>

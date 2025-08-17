@@ -45,8 +45,8 @@ export const DatabaseProvider: React.FC<DatabaseProviderProps> = ({ children }) 
               const repoName = pathParts[0] || 'pary-planner';
               return `/${repoName}/${file}`;
             } else {
-              // For local development, use relative path
-              return `/${file}`;
+              // For local development, files are in the public directory
+              return file;
             }
           }
         });

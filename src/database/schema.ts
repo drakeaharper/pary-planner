@@ -75,11 +75,43 @@ CREATE TABLE IF NOT EXISTS user_preferences (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Party itinerary items
+CREATE TABLE IF NOT EXISTS itinerary_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    party_id INTEGER NOT NULL,
+    start_time TEXT NOT NULL, -- HH:MM
+    end_time TEXT NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT,
+    category TEXT NOT NULL,
+    location TEXT,
+    responsible TEXT,
+    preparations TEXT, -- JSON array
+    notes TEXT,
+    completed BOOLEAN DEFAULT FALSE,
+    order_index INTEGER,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (party_id) REFERENCES parties (id) ON DELETE CASCADE
+);
+
+-- Itinerary templates
+CREATE TABLE IF NOT EXISTS itinerary_templates (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    party_type TEXT, -- birthday, wedding, corporate, etc.
+    duration INTEGER, -- hours
+    description TEXT,
+    template_data TEXT, -- JSON of default items
+    is_default BOOLEAN DEFAULT FALSE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_guests_party_id ON guests(party_id);
 CREATE INDEX IF NOT EXISTS idx_timeline_tasks_party_id ON timeline_tasks(party_id);
 CREATE INDEX IF NOT EXISTS idx_pizza_calculations_party_id ON pizza_calculations(party_id);
 CREATE INDEX IF NOT EXISTS idx_beverage_calculations_party_id ON beverage_calculations(party_id);
+CREATE INDEX IF NOT EXISTS idx_itinerary_items_party_id ON itinerary_items(party_id);
 `;
 
 export const DEFAULT_TIMELINE_TASKS = [
