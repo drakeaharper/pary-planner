@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS guests (
     email TEXT,
     rsvp TEXT DEFAULT 'pending',
     dietary_restrictions TEXT,
-    plus_one BOOLEAN DEFAULT FALSE,
+    additional_guests INTEGER DEFAULT 0,
     notes TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (party_id) REFERENCES parties (id) ON DELETE CASCADE
@@ -106,12 +106,77 @@ CREATE TABLE IF NOT EXISTS itinerary_templates (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Enhanced todo items
+CREATE TABLE IF NOT EXISTS todo_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    party_id INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT,
+    category TEXT NOT NULL,
+    priority TEXT DEFAULT 'medium',
+    due_date TEXT, -- ISO date
+    estimated_time INTEGER, -- minutes
+    completed BOOLEAN DEFAULT FALSE,
+    assigned_to TEXT,
+    location TEXT,
+    estimated_cost REAL,
+    actual_cost REAL,
+    notes TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    completed_at DATETIME,
+    FOREIGN KEY (party_id) REFERENCES parties (id) ON DELETE CASCADE
+);
+
+-- Task dependencies
+CREATE TABLE IF NOT EXISTS todo_dependencies (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    todo_id INTEGER NOT NULL,
+    depends_on_id INTEGER NOT NULL,
+    FOREIGN KEY (todo_id) REFERENCES todo_items (id) ON DELETE CASCADE,
+    FOREIGN KEY (depends_on_id) REFERENCES todo_items (id) ON DELETE CASCADE
+);
+
+-- Subtasks
+CREATE TABLE IF NOT EXISTS todo_subtasks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    todo_id INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    completed BOOLEAN DEFAULT FALSE,
+    order_index INTEGER,
+    FOREIGN KEY (todo_id) REFERENCES todo_items (id) ON DELETE CASCADE
+);
+
+-- Attachments
+CREATE TABLE IF NOT EXISTS todo_attachments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    todo_id INTEGER NOT NULL,
+    name TEXT NOT NULL,
+    type TEXT NOT NULL, -- link, image, document
+    url TEXT NOT NULL,
+    FOREIGN KEY (todo_id) REFERENCES todo_items (id) ON DELETE CASCADE
+);
+
+-- Todo templates
+CREATE TABLE IF NOT EXISTS todo_templates (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    party_type TEXT,
+    guest_count_range TEXT, -- "10-20", "50+", etc.
+    template_data TEXT, -- JSON of default todos
+    is_default BOOLEAN DEFAULT FALSE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_guests_party_id ON guests(party_id);
 CREATE INDEX IF NOT EXISTS idx_timeline_tasks_party_id ON timeline_tasks(party_id);
 CREATE INDEX IF NOT EXISTS idx_pizza_calculations_party_id ON pizza_calculations(party_id);
 CREATE INDEX IF NOT EXISTS idx_beverage_calculations_party_id ON beverage_calculations(party_id);
 CREATE INDEX IF NOT EXISTS idx_itinerary_items_party_id ON itinerary_items(party_id);
+CREATE INDEX IF NOT EXISTS idx_todo_items_party_id ON todo_items(party_id);
+CREATE INDEX IF NOT EXISTS idx_todo_dependencies_todo_id ON todo_dependencies(todo_id);
+CREATE INDEX IF NOT EXISTS idx_todo_subtasks_todo_id ON todo_subtasks(todo_id);
+CREATE INDEX IF NOT EXISTS idx_todo_attachments_todo_id ON todo_attachments(todo_id);
 `;
 
 export const DEFAULT_TIMELINE_TASKS = [

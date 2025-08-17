@@ -10,7 +10,7 @@ const GuestListManager = () => {
     name: '',
     email: '',
     dietary_restrictions: '',
-    plus_one: false,
+    additional_guests: 0,
   });
   const [showAddForm, setShowAddForm] = useState(false);
 
@@ -24,11 +24,11 @@ const GuestListManager = () => {
         email: newGuest.email,
         rsvp: 'pending',
         dietary_restrictions: newGuest.dietary_restrictions,
-        plus_one: newGuest.plus_one,
+        additional_guests: newGuest.additional_guests,
         notes: '',
       });
       
-      setNewGuest({ name: '', email: '', dietary_restrictions: '', plus_one: false });
+      setNewGuest({ name: '', email: '', dietary_restrictions: '', additional_guests: 0 });
       setShowAddForm(false);
     } catch (error) {
       console.error('Failed to add guest:', error);
@@ -92,8 +92,8 @@ const GuestListManager = () => {
               <div className="text-sm text-gray-600">Pending</div>
             </div>
             <div className="bg-blue-50 p-4 rounded-lg text-center">
-              <div className="text-2xl font-bold text-blue-600">{stats.plusOnes}</div>
-              <div className="text-sm text-gray-600">Plus Ones</div>
+              <div className="text-2xl font-bold text-blue-600">{stats.additionalGuests}</div>
+              <div className="text-sm text-gray-600">Additional</div>
             </div>
             <div className="bg-purple-50 p-4 rounded-lg text-center">
               <div className="text-2xl font-bold text-purple-600">{stats.total}</div>
@@ -114,7 +114,7 @@ const GuestListManager = () => {
           {/* Add Guest Form */}
           {showAddForm && (
             <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Add New Guest</h3>
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">Add New Guest/Family</h3>
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -152,17 +152,22 @@ const GuestListManager = () => {
                     placeholder="Vegetarian, gluten-free, etc."
                   />
                 </div>
-                <div className="flex items-center pt-6">
-                  <input
-                    type="checkbox"
-                    id="plus-one"
-                    checked={newGuest.plus_one}
-                    onChange={(e) => setNewGuest({ ...newGuest, plus_one: e.target.checked })}
-                    className="h-4 w-4 text-blue-600 rounded"
-                  />
-                  <label htmlFor="plus-one" className="ml-2 text-sm text-gray-700">
-                    Plus one allowed
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Additional Family Members
                   </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="10"
+                    value={newGuest.additional_guests}
+                    onChange={(e) => setNewGuest({ ...newGuest, additional_guests: parseInt(e.target.value) || 0 })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Number of additional guests"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    How many additional family members or guests will attend
+                  </p>
                 </div>
               </div>
               <div className="flex space-x-3 mt-4">
@@ -208,9 +213,9 @@ const GuestListManager = () => {
                       <div className="flex-1">
                         <div className="flex items-center space-x-3">
                           <h4 className="font-medium text-gray-900">{guest.name}</h4>
-                          {guest.plus_one && (
+                          {guest.additional_guests > 0 && (
                             <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                              +1
+                              +{guest.additional_guests}
                             </span>
                           )}
                         </div>

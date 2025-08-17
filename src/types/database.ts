@@ -18,7 +18,7 @@ export interface Guest {
   email?: string;
   rsvp: 'pending' | 'yes' | 'no';
   dietary_restrictions?: string;
-  plus_one: boolean;
+  additional_guests: number;
   notes?: string;
   created_at: string;
 }

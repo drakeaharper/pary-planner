@@ -39,7 +39,7 @@ export const useGuests = (partyId: number | null) => {
   const addGuest = async (guestData: Omit<Guest, 'id' | 'created_at'>): Promise<number> => {
     try {
       const result = await executeUpdate(
-        `INSERT INTO guests (party_id, name, email, rsvp, dietary_restrictions, plus_one, notes)
+        `INSERT INTO guests (party_id, name, email, rsvp, dietary_restrictions, additional_guests, notes)
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [
           guestData.party_id,
@@ -47,7 +47,7 @@ export const useGuests = (partyId: number | null) => {
           guestData.email,
           guestData.rsvp,
           guestData.dietary_restrictions,
-          guestData.plus_one,
+          guestData.additional_guests,
           guestData.notes,
         ]
       );
@@ -95,14 +95,14 @@ export const useGuests = (partyId: number | null) => {
     const confirmed = guests.filter(g => g.rsvp === 'yes').length;
     const declined = guests.filter(g => g.rsvp === 'no').length;
     const pending = guests.filter(g => g.rsvp === 'pending').length;
-    const plusOnes = guests.filter(g => g.rsvp === 'yes' && g.plus_one).length;
+    const additionalGuests = guests.filter(g => g.rsvp === 'yes').reduce((sum, g) => sum + g.additional_guests, 0);
     
     return { 
       confirmed, 
       declined, 
       pending, 
-      plusOnes, 
-      total: confirmed + plusOnes,
+      additionalGuests, 
+      total: confirmed + additionalGuests,
       totalInvited: guests.length
     };
   };
