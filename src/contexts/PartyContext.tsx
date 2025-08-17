@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { Party } from '../types/database';
-import { useParties } from '../hooks/useParties';
+import { useDatabase } from './DatabaseContext';
 
 interface PartyContextType {
   currentParty: Party | null;
@@ -19,19 +19,20 @@ export const PartyProvider: React.FC<PartyProviderProps> = ({ children }) => {
   const [currentPartyId, setCurrentPartyId] = useState<number | null>(null);
   const [currentParty, setCurrentParty] = useState<Party | null>(null);
   const [loading, setLoading] = useState(false);
-  const { getParty } = useParties();
+  const { executeQuery, isReady } = useDatabase();
 
   // Load party details when party ID changes
   useEffect(() => {
     const loadCurrentParty = async () => {
-      if (!currentPartyId) {
+      if (!currentPartyId || !isReady) {
         setCurrentParty(null);
         return;
       }
 
       setLoading(true);
       try {
-        const party = await getParty(currentPartyId);
+        const results = await executeQuery('SELECT * FROM parties WHERE id = ?', [currentPartyId]);
+        const party = results.length > 0 ? results[0] as Party : null;
         setCurrentParty(party);
       } catch (error) {
         console.error('Failed to load party:', error);
@@ -42,7 +43,7 @@ export const PartyProvider: React.FC<PartyProviderProps> = ({ children }) => {
     };
 
     loadCurrentParty();
-  }, [currentPartyId, getParty]);
+  }, [currentPartyId, isReady, executeQuery]);
 
   // Persist selected party ID to localStorage
   useEffect(() => {
